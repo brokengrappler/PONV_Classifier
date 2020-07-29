@@ -70,3 +70,9 @@ CREATE TABLE IF NOT EXISTS PONVFull (
     intraoperative_antiemectics_count int DEFAULT NULL,
     PRIMARY KEY (patientID)
 );
+
+CREATE TABLE IF NOT EXISTS Proc_trans (
+	surgical_procedure varchar(30) NOT NULL,
+	procedure_EN varchar(30) DEFAULT NULL,
+	PRIMARY KEY (surgical_procedure)
+);
