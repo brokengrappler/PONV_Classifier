@@ -46,7 +46,7 @@ GROUP BY trtbl.patientid, trtbl.procedure_en;
 
 -- Joining master table with dummy table;
 -- Create new table with dummy vars and filter null PONV outcomes
-CREATE TABLE ponv_dummy as
+--CREATE TABLE ponv_dummy as
 WITH dummytbl AS (
 SELECT  trtbl.patientid, trtbl.procedure_en,
 count(CASE WHEN procedure_en = 'Gastrointestinal'THEN 1 END) AS Gastrointestinal,
@@ -77,7 +77,7 @@ count(CASE WHEN procedure_en = 'Gastrointestinal'THEN 1 END) AS Gastrointestinal
 FROM 
 (SELECT patientid, pt.surgical_procedure, pt.procedure_en
 FROM ponvfull pf
-INNER JOIN proc_trans pt ON pf.surgical_procedure = pt.surgical_procedure) AS trtbl
+INNER JOIN proc_trans pt USING (surgical_procedure)) AS trtbl  --ON pf.surgical_procedure = pt.surgical_procedure
 GROUP BY trtbl.patientid, trtbl.procedure_en
 )
 SELECT DISTINCT ON (dummytbl.patientid) *
@@ -85,7 +85,11 @@ FROM ponvfull p
 INNER JOIN dummytbl USING (patientid)
 WHERE ponv NOTNULL OR nausea_24h NOTNULL;
 
+-- removing surgical procedure in portuguese
+ALTER TABLE ponv_dummy 
+DROP COLUMN surgical_procedure;
 
-SELECT *
-FROM ponv_dummy pd 
-LIMIT 10
+CREATE TABLE analysis_set as
+SELECT pd.*,
+	CASE WHEN pd.sex = 'Male' THEN 0 ELSE 1 END AS gender_code
+FROM ponv_dummy pd;

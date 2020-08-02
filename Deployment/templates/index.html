@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Will you puke or not?</title>
+  <style>
+  body{
+    font-family: sans-serif;
+  }
+  .button {
+    background-color: LightPink;
+    border: none;
+    color: Black;
+    padding: 15px 32px;
+    text-align: left;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 24px;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  .animal-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 10px 10px 0px #eee;
+    width: 500px;
+    margin: auto;
+  }
+  </style>
+
+</head>
+
+<body align="center">
+
+  <h2>Enter in a baked goods recipe and I'll tell you if it's a muffin or cupcake.</h2>
+
+  <form action="/predict_recipe/" method="post">
+
+    <div class="animal-card" align="left">
+
+      1 Gender:
+        <input type="radio" id="Male" name="Gender" value=0>
+        <label for="Male">Male</label>
+        <input type="radio" id="Female" name="Gender" value=1>
+        <label for="Female">Female</label>
+      <br>
+      <br>
+      2 Non_Smoker:
+        <input type="radio" id="Non_Smoker" name="Non_Smoker" value=0>
+        <label for="Non_Smoker">Non-Smoker</label>
+        <input type="radio" id="Smoker" name="Non_Smoker" value=1>
+        <label for="Smoker">Smoker</label>
+      <br>
+      <br>
+      3 Previous PONV:
+        <input type="radio" id="pp_yes" name="previous_ponv" value=0>
+        <label for="pp_yes">Yes</label>
+        <input type="radio" id="pp_no" name="previous_ponv" value=1>
+        <label for="pp_no">No</label>
+      <br>
+      <br>
+      4 postoperative opioids:
+        <input type="radio" id="po_yes" name="postoperative_opioids" value=0>
+        <label for="po_yes">Yes</label>
+        <input type="radio" id="po_no" name="postoperative_opioids" value=1>
+        <label for="po_no">No</label>
+      <br>
+      <br>
+      5 Prior Chemo:
+      <br>
+      	<input type="text" name="previous_chemotherapy">
+      <br>
+
+      6 Last chemo (months):
+      <br>
+        <input type="text" name="how_many_months_ago_chemotherapy">
+      <br>
+
+      7 Post Chemo Nausea:
+      <br>
+        <input type="text" name="post_chemotherapy_nausea">
+      <br>
+      
+      8 Post Chemo Vomiting:
+      <br>
+        <input type="text" name="post_chemotherapy_vomiting">
+      <br>
+
+      9 Surgery Type:
+      <br>
+        <input type="text" name="Surgery">
+      <br>
+
+      10 fentanil_mcg:
+      <br>
+        <input type="text" name="fentanil_mcg">
+      <br>
+
+      11 sufentanil_mcg:
+      <br>
+        <input type="text" name="sufentanil_mcg">
+      <br>
+
+      12 tramadol_dose_pacu:
+      <br>
+        <input type="text" name="tramadol_dose_pacu">
+      <br>
+
+      13 ketamine_dose:
+      <br>
+        <input type="text" name="ketamine_dose">
+      <br>
+
+      14 intraoperative_morphine_dose:
+      <br>
+        <input type="text" name="intraoperative_morphine_dose">
+      <br>
+
+    </div>
+
+  <br>
+
+  <button type="submit" class="button">
+    What is it?
+  </button>
+  </form>
+
+  <br>
+
+  {% if message %}
+  <h2>{{message}}</h2>
+  {% endif %}
+
+</body>
+</html>
