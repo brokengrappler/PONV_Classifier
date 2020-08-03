@@ -7,10 +7,13 @@ def load_model(input_dict):
     my_model = pickle.load(open("lr_pickled_model.p","rb"))
     scaler = pickle.load(open("ponv_scaler.p","rb"))
     sc_x = scaler.transform(input_x)
-    prediction = my_model.predict_proba(sc_x)
-    return prediction
+    prediction = round(my_model.predict_proba(sc_x),2)
+    print(f'{prediction})
+    #return prediction
 
 st.title('PONV Probability Calculator')
+
+ponv_result = st.empty()
 
 input_dict = {"Gender":0,
               "Non_Smoker":0,
@@ -38,7 +41,7 @@ input_dict = {"Gender":0,
               'sufentanil_mcg':0,
               'tramadol_dose_pacu':0,
               'ketamine_dose':0,
-              'intraoperative_morphine_dose':0,
+              'morphine_dose':0,
               'previous_chemotherapy':0,
               'how_many_months_ago_chemotherapy':0,
               'post_chemotherapy_nausea':0,
@@ -119,11 +122,11 @@ if option == 'Other':
 else:
     input_dict[input_surg_dict[option]] = 1
 
-input_dict['fentanil_mcg']=st.number_input('Fentinal (mcg)', step=25.0)/1000
-input_dict['sufentanil_mcg']=st.number_input('Sufentanil (mcg)', step=25.0)/1000
-input_dict['tramadol_dose_pacu']=st.number_input('tramadol (mg)', step=10.0)
-input_dict['ketamine_dose']=st.number_input('ketamine (mg)', step=10.0)
-input_dict['intraoperative_morphine_dose']=st.number_input('Morphine (mg)', step=1.0)
+input_dict['fentanil_mcg'] = st.slider('Fentinal (mcg)', min_value=0.0, max_value=500.0, step=1.0)/1000
+input_dict['sufentanil_mcg']=st.slider('Sufentanil (mcg)', min_value=0.0, max_value=500.0, step=1.0)/1000
+input_dict['tramadol_dose_pacu']=st.slider('tramadol (mg)', min_value=0.0, max_value=50.0, step=1.0)
+input_dict['ketamine_dose']=st.slider('ketamine (mg)', min_value=0.0, max_value=50.0, step=1.0)
+input_dict['morphine_dose']=st.slider('Morphine (mg)', min_value=0.0, max_value=50.0, step=1.0)
 
 pr_chemo = st.radio('Prior Chemotherapy:', ('Yes', 'No'))
 if pr_chemo == 'Yes':
@@ -144,8 +147,8 @@ if chemo_vomit == 'Yes':
 else:
     input_dict['post_chemotherapy_vomiting'] = 0
 
-if st.button('PONV Probability'):
-    st.write(load_model(input_dict)[0,0])
+# if st.button('PONV Probability'):
+ponv_result.header(load_model(input_dict)[0,1])
 
 # To debug potential values
 st.write(input_dict)

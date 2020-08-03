@@ -37,7 +37,8 @@ def ponv_log_reg(x,y):
     rocauc_score_list = []
     # Generate kfolds
     skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=444)
-    lr = LogisticRegression(C=100, fit_intercept=False, solver='liblinear', tol=1e-6, max_iter=1000)
+    lr = LogisticRegression(C=100, fit_intercept=False, class_weight={1 : 2, 0 : 1},
+                            solver='liblinear', tol=1e-6, max_iter=1000)
 
     for tr_idx, va_idx in skf.split(x, y):
         tr_x, tr_y = x.iloc[tr_idx], y.iloc[tr_idx]
