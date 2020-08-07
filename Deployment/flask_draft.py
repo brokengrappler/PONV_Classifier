@@ -4,16 +4,23 @@ import pickle
 
 def load_model(input_dict):
     input_x = pd.DataFrame(input_dict, index=[0])
-    my_model = pickle.load(open("lr_pickled_model.p","rb"))
+    my_model = pickle.load(open("lr_final_model.p","rb"))
     scaler = pickle.load(open("ponv_scaler.p","rb"))
     sc_x = scaler.transform(input_x)
-    prediction = round(my_model.predict_proba(sc_x),2)
-    print(f'{prediction})
-    #return prediction
+    prediction = my_model.predict_proba(sc_x)
+    return prediction
 
-st.title('PONV Probability Calculator')
+def combined_drugs(input_dict, drug_dict):
+    total_volume = 0
+    merged_dict = {**input_dict, **drug_dict}
+    for k, v in merged_dict.items():
+        if k in drugs:
+            total_volume += v
+    return total_volume
 
-ponv_result = st.empty()
+st.markdown('# PONV Probability Calculator')
+
+#ponv_result = st.empty()
 
 input_dict = {"Gender":0,
               "Non_Smoker":0,
@@ -29,6 +36,7 @@ input_dict = {"Gender":0,
               'hysterectomy':0,
               'nephrectomy':0,
               'mastectomy':0,
+              'gastrointestinal': 0,
               'thoracic':0,
               'exploratory_laparotomy':0,
               'hepatectomy':0,
@@ -46,13 +54,30 @@ input_dict = {"Gender":0,
               'how_many_months_ago_chemotherapy':0,
               'post_chemotherapy_nausea':0,
               'post_chemotherapy_vomiting':0,
+              'age': 18,
+              'tot_drugs': 0
               }
 
+# Separate drugs as it can not be included in input dict
+total_drugs = {
+    'intraoperative_ondansetron_dose': 0,
+    'dexamethasone_dose': 0,
+    'intraoperative_dimenidrate_dose': 0,
+    'metoclopramide_dose': 0,
+    'droperidol_dose': 0,
+}
+
+st.markdown('---')
+
+st.write('<style>div.Widget.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+# Basic Info
 gender = st.radio('Gender:', ('Male', 'Female'))
 if gender == 'Male':
     input_dict['Gender'] = 0
 else:
     input_dict['Gender'] = 1
+
+input_dict['age']=st.slider('Age', min_value=18.0, max_value=100.0, step=1.0)
 
 smoker = st.radio('Smoker:', ('Yes', 'No'))
 if smoker == 'Yes':
@@ -60,7 +85,7 @@ if smoker == 'Yes':
 else:
     input_dict['Non_Smoker'] = 1
 
-previous_ponv = st.radio('Prior PONV:', ('Yes', 'No'))
+previous_ponv = st.radio('Prior PONV / Susceptible to Nausea:', ('Yes', 'No'))
 if previous_ponv == 'Yes':
     input_dict['previous_ponv'] = 1
 else:
@@ -74,6 +99,7 @@ else:
 
 # Creating list for Surgery Selection input
 clean_surg_list = [
+    'Gastronintestinal',
     'Pancreatectomy',
      'Hysterectomy(Laproscopic)',
      'Anexectomy/Ovariectomy',
@@ -95,9 +121,10 @@ clean_surg_list = [
     'Other'
 ]
 
-option = st.selectbox('Surgicel Procedure:',(sorted(clean_surg_list)))
+option = st.selectbox('Surgical Procedure:',(sorted(clean_surg_list)))
 
 input_surg_list = [
+    'gastrointestinal',
     'pancreatectomy',
     'hysterectomy_vlp',
     'anexectomy_ovariectomy',
@@ -122,6 +149,7 @@ if option == 'Other':
 else:
     input_dict[input_surg_dict[option]] = 1
 
+# Inputs for opioids
 input_dict['fentanil_mcg'] = st.slider('Fentinal (mcg)', min_value=0.0, max_value=500.0, step=1.0)/1000
 input_dict['sufentanil_mcg']=st.slider('Sufentanil (mcg)', min_value=0.0, max_value=500.0, step=1.0)/1000
 input_dict['tramadol_dose_pacu']=st.slider('tramadol (mg)', min_value=0.0, max_value=50.0, step=1.0)
@@ -130,25 +158,42 @@ input_dict['morphine_dose']=st.slider('Morphine (mg)', min_value=0.0, max_value=
 
 pr_chemo = st.radio('Prior Chemotherapy:', ('Yes', 'No'))
 if pr_chemo == 'Yes':
+    # Chemo options only show up if patient has had prior chemo
     input_dict['previous_chemotherapy'] = 1
+
     input_dict['how_many_months_ago_chemotherapy'] = st.number_input('Last Chemo (mos. ago)')
+
+    chemo_nausea = st.radio('Post Chemo Nausea:', ('Yes', 'No'))
+    if chemo_nausea == 'Yes':
+        input_dict['post_chemotherapy_nausea'] = 1
+    else:
+        input_dict['post_chemotherapy_nausea'] = 0
+
+    chemo_vomit = st.radio('Post Chemo Vomit:', ('Yes', 'No'))
+    if chemo_vomit == 'Yes':
+        input_dict['post_chemotherapy_vomiting'] = 1
+    else:
+        input_dict['post_chemotherapy_vomiting'] = 0
 else:
     input_dict['previous_chemotherapy'] = 0
 
-chemo_nausea = st.radio('Post Chemo Nausea:', ('Yes', 'No'))
-if chemo_nausea == 'Yes':
-    input_dict['post_chemotherapy_nausea'] = 1
-else:
-    input_dict['post_chemotherapy_nausea'] = 0
+# Section for antiemetics
+total_drugs['intraoperative_ondansetron_dose'] = st.slider('Ondansetron (mg)', min_value=0.0, max_value=10.0, step=0.1)
+total_drugs['dexamethasone_dose'] = st.slider('Dexamethasone (mg)', min_value=0.0, max_value=10.0, step=0.1)
+total_drugs['intraoperative_dimenidrate_dose'] = st.slider('Dimenidrate (mg)', min_value=0.0, max_value=50.0, step=1.0)
+total_drugs['metoclopramide_dose'] = st.slider('Metoclopramide (mg)', min_value=0.0, max_value=10.0, step=0.1)
+total_drugs['droperidol_dose'] = st.slider('Droperidol (mg)', min_value=0.0, max_value=10.0, step=0.1)
 
-chemo_vomit = st.radio('Post Chemo Vomit:', ('Yes', 'No'))
-if chemo_vomit == 'Yes':
-    input_dict['post_chemotherapy_vomiting'] = 1
-else:
-    input_dict['post_chemotherapy_vomiting'] = 0
+drugs = ['tramadol_dose_pacu', 'ketamine_dose','intraoperative_morphine_dose', 'intraoperative_ondansetron_dose', 'dexamethasone_dose',
+         'intraoperative_dimenidrate_dose', 'metoclopramide_dose', 'droperidol_dose', 'fentanil_mcg', 'sufentanil_mcg']
 
-# if st.button('PONV Probability'):
-ponv_result.header(load_model(input_dict)[0,1])
+# Assign total drugs
+input_dict['tot_drugs'] = combined_drugs(input_dict, total_drugs)
+
+#ponv_result.markdown('## '+str(load_model(input_dict)[0,1]*100)[:5]+'%')
+
+
+st.sidebar.markdown('# Probability : '+str(load_model(input_dict)[0,1]*100)[:5]+'%')
 
 # To debug potential values
-st.write(input_dict)
+# st.write(input_dict)

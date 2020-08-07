@@ -1,5 +1,5 @@
 from sklearn.metrics import f1_score, roc_auc_score
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 import Oversample
@@ -24,7 +24,7 @@ def std_scale(x_tr,x_va):
     pickle.dump(scaler, open('ponv_scaler.p', 'wb'))
     return sc_xtr, sc_xva
 
-def ponv_log_reg(x,y):
+def RFC(x,y):
     '''
     Fit logistic regression model using stratified k-fold and prints metrics
     :param x:
@@ -56,7 +56,34 @@ def ponv_log_reg(x,y):
 
     return rfc
 
-if __name__ == '__main__':
-    agg_df_x = pd.read_pickle('../pkl_files/agg_df_x.pkl')
-    tv_y = pd.read_pickle('../pkl_files/tv_y.pkl')
-    ponv_log_reg(agg_df_x, tv_y)
+def GBC(x,y):
+    '''
+    Fit logistic regression model using stratified k-fold and prints metrics
+    :param x:
+        train and validation features
+    :param y:
+        train and validation targets
+    :return:
+        Logistic regression model
+    '''
+    f1_score_list = []
+    rocauc_score_list = []
+    # Generate kfolds
+    skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=444)
+    gbc = GradientBoostingClassifier(max_depth=6, n_estimators=140)
+
+    for tr_idx, va_idx in skf.split(x, y):
+        tr_x, tr_y = x.iloc[tr_idx], y.iloc[tr_idx]
+        va_x, va_y = x.iloc[va_idx], y.iloc[va_idx]
+        # Get oversample set
+        trx_os, try_os = Oversample.return_oversample(2, tr_x, tr_y)
+        # scale and transform
+        #sc_xtr, sc_xva = std_scale(trx_os, va_x)
+        gbc.fit(trx_os, try_os)
+        f1_score_list.append(f1_score(va_y, gbc.predict(va_x)))
+        predict_proba = gbc.predict_proba(va_x)[:, 1]
+        rocauc_score_list.append(roc_auc_score(va_y, predict_proba))
+    print('Avg. f1 score:', np.array(f1_score_list).mean())
+    print('Avg. Roc/Auc score', np.array(rocauc_score_list).mean())
+
+    return gbc
