@@ -17,5 +17,9 @@ Preoperative, intraoperative and postoperative data to select the best predictor
 -- Problem
 
 * Don't spend money unnecessarily on expensive drugs (stronger drugs = higher price and additional side effects)
-* Increase patient satisfaction
+* Increase patient satisfaction (in turn leads to higher reimbursements)
 * Free up resources post op (another way of saving money)
+
+-- Existing Predictors
+Apfel 
+Kolvuranta
