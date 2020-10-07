@@ -2,6 +2,13 @@ import pandas as pd
 import numpy as np
 
 def select_surgery_features(analysis_df):
+    '''
+    Extract list of filtered surgeries from the raw data set
+    :param analysis_df:
+        Dataframe containing cleaned data
+    :return:
+        List of surgeries for input into classifier model
+    '''
     proc_feat = analysis_df.iloc[:, np.r_[55, 58:83]].groupby('ponv').sum().T
     proc_feat['subtotal_surg'] = proc_feat[True]+proc_feat[False]
     proc_feat['ponv_rate'] = proc_feat[True]/proc_feat['subtotal_surg']

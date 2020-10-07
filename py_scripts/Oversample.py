@@ -3,7 +3,7 @@ import numpy as np
 
 def return_oversample(mx, x, y, rs=444):
     '''
-    Use imblearn over sampling to upsample minority class
+    Use imblearn over-sampling to upsample minority class
     :param mx:
         Multiplier to upsample minority class
     :param x:
